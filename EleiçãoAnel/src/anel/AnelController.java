@@ -18,7 +18,7 @@ public class AnelController{
 		}
 	}
 	
-	public static List<Processo>listaProcessos = new ArrayList<Processo>();
+	public static  List<Processo>listaProcessos = new ArrayList<Processo>();
 	Random r = new Random();
 	private static int x = 1;
 	private final Object lock = new Object(); 
@@ -28,7 +28,7 @@ public class AnelController{
 			@Override			
 				public void run() {
 					while(true) {						
-						synchronized (lock) {
+						
 						
 							if(listaProcessos.isEmpty()) {
 								
@@ -40,7 +40,7 @@ public class AnelController{
 								
 								listaProcessos.add(new Processo(x, false,true));
 								System.out.println("Processo "+x+" criado e adicionado na posição:"+listaProcessos.size());								
-								listaProcessos.get(listaProcessos.size()-1).start();
+								listaProcessos.get(listaProcessos.size()-1).start();								
 								x++;
 							}
 							
@@ -50,7 +50,7 @@ public class AnelController{
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-					}
+					
 					}
 				}
 		}).start();		
@@ -62,7 +62,7 @@ public class AnelController{
 		new Thread(new Runnable() {			
 			@Override
 			public void run() {				
-					//synchronized (lock) {						
+					synchronized (lock) {						
 						int flag = -1;
 						int x=0;							
 							
@@ -77,24 +77,36 @@ public class AnelController{
 							listaProcessos.get(x).setCoordenador(true);;
 							System.out.println("O processo "+listaProcessos.get(x).getId()+" é o novo coordenador");
 													
-					//}										
+					}										
 				
 			}
 		}).start();		
 		
 	}
 	
+	public Boolean verificarCoordenador(long id) {
+				
+		synchronized (lock) {
+			
+			for(Processo p:listaProcessos) {
+				if(p.isCoordenador()) {
+					return true;
+				}
+			}
+			
+			return false;
+		}		
+	}	
 	
 	
 	public void finalizarProcesso() {		
 		new Thread(new Runnable() {			
 			@Override
 			public void run() {
-				while(true) {
-					synchronized (lock) {
+				while(true) {					
 						
 						try {
-							Thread.sleep(7000);
+							Thread.sleep(10000);
 							
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
@@ -115,7 +127,7 @@ public class AnelController{
 						
 					}		
 					
-				}
+				
 			}
 		}).start();
 		
@@ -127,9 +139,9 @@ public class AnelController{
 			public void run() {
 				
 				while(true) {
-					synchronized (lock) {					
+										
 					try {
-						Thread.sleep(8000);
+						Thread.sleep(12000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -143,11 +155,7 @@ public class AnelController{
 								listaProcessos.remove(i);
 							}
 						}								
-					}			
-								
-																				
-				}
-				
+					}	
 			}
 		}).start();
 		

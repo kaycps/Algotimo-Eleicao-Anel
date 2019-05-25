@@ -16,12 +16,12 @@ public class Processo extends Thread{
 		this.id = id;
 		this.coordenador = coordenador;
 		this.ativo = ativo;
-	}	
+	}
+	
 	
 	public boolean isAtivo() {
 		return ativo;
 	}
-
 
 	public void setAtivo(boolean ativo) {
 		this.ativo = ativo;
@@ -44,37 +44,24 @@ public class Processo extends Thread{
 	public void requisicao() {
 		
 		try {
-			Thread.sleep(6000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		if(isAtivo()) {	
-			
-			int flag = 0;
-			
-			for(int i=0; i<anelController.listaProcessos.size();i++) {
-				
-				if(anelController.listaProcessos.get(i).isCoordenador()&&anelController.listaProcessos.get(i).getName()!=getName()) {
+						
+				if(anelController.verificarCoordenador(getId())&&!isCoordenador()) {
 					
-					System.out.println("Processo "+getId()+ " comunicou-se com o coordenador "+anelController.listaProcessos.get(i).getId());
-					flag=1;
-				}
-			}
-			
-			if(!isCoordenador()&&flag==1) {				
-				
-				anelController.elegerCoordenador((int)getId());
-				System.out.println("id: "+getId());
-				System.out.println("entrou");		
-				flag=0;
-			}
+					System.out.println("Processo "+getId()+ " comunicou-se com o coordenador ");
 					
-		}
-		
-		
-				
+				}else if(anelController.verificarCoordenador(getId())==false) {
+					
+					anelController.elegerCoordenador((int)getId());
+					System.out.println("O processo "+id+" iniciou a eleição");	
+				}								
+		}				
 	}
 	
 		
@@ -84,9 +71,7 @@ public class Processo extends Thread{
 		
 			while(true) {
 				requisicao();
-			}
-				
-													
+			}							
 				
 	}
 	
