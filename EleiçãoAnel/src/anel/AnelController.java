@@ -6,72 +6,153 @@ import java.util.Random;
 
 import Processo.Processo;
 
-public class AnelController extends Thread{
+public class AnelController{
 	
-	List<Processo>listaProcessos = new ArrayList<Processo>();
+	private static AnelController anel;
+	
+	public static synchronized AnelController getInstance() {
+		if(anel==null) {
+			return anel = new AnelController();
+		}else {
+			return anel;
+		}
+	}
+	
+	public static List<Processo>listaProcessos = new ArrayList<Processo>();
+	Random r = new Random();
+	private static int x = 1;
+	private final Object lock = new Object(); 
 	
 	public void gerarProcesso() {
-		
-		if(listaProcessos.isEmpty()) {
-			
-			listaProcessos.add(new Processo(0, false));
-		}else {
-			
-			listaProcessos.add(new Processo(listaProcessos.size(), false));
-		}
+		new Thread(new Runnable() {			
+			@Override			
+				public void run() {
+					while(true) {						
+						synchronized (lock) {
+						
+							if(listaProcessos.isEmpty()) {
+								
+								listaProcessos.add(new  Processo(x, false,true));
+								System.out.println("Processo "+x+" criado e adicionado na posição:"+listaProcessos.size());
+								listaProcessos.get(0).start();
+								x++;
+							}else {
+								
+								listaProcessos.add(new Processo(x, false,true));
+								System.out.println("Processo "+x+" criado e adicionado na posição:"+listaProcessos.size());								
+								listaProcessos.get(listaProcessos.size()-1).start();
+								x++;
+							}
+							
+							try {
+								Thread.sleep(5000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+					}
+					}
+				}
+		}).start();		
 		
 	}
 	
 	
-	public void elegerCoordenador(Processo processo) {
-		
-		if(vericarCoordenador()==false) {
-			
-			int flag = -1;
-			for(int i =0;i<listaProcessos.size();i++) {
+	public void elegerCoordenador(int id) {
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {				
+					//synchronized (lock) {						
+						int flag = -1;
+						int x=0;							
+							
+							for(int i =0;i<listaProcessos.size();i++) {
+								
+								if(listaProcessos.get(i).getId()>flag) {
+									
+									flag=(int)listaProcessos.get(i).getId();
+									x=i; 
+								}
+							}
+							listaProcessos.get(x).setCoordenador(true);;
+							System.out.println("O processo "+listaProcessos.get(x).getId()+" é o novo coordenador");
+													
+					//}										
 				
-				if(listaProcessos.get(i).getId()>flag) {
+			}
+		}).start();		
+		
+	}
+	
+	
+	
+	public void finalizarProcesso() {		
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				while(true) {
+					synchronized (lock) {
+						
+						try {
+							Thread.sleep(7000);
+							
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						for(int i=0;i<listaProcessos.size();i++) {
+							if(!listaProcessos.get(i).isCoordenador()) {
+								
+								int j = r.nextInt(listaProcessos.size());
+								if(j>0) {
+									j--;
+								}
+								System.out.println("Processo "+listaProcessos.get(j).getId()+" Finalizado");
+								listaProcessos.get(j).setAtivo(false);
+								listaProcessos.remove(j);
+							}
+						}
+						
+					}		
 					
-					flag=(int) listaProcessos.get(i).getId();
 				}
 			}
-			
-			listaProcessos.get(flag).setCoordenador(true);
-		}
+		}).start();
 		
 	}
 	
-	public boolean vericarCoordenador() {
-		
-		int i =0;
-		
-		for(int j=0;j<listaProcessos.size();j++) {
-			
-			if(listaProcessos.get(j).isCoordenador()) {
+	public void finalizarCoordenador() {
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {
 				
-				i++;
+				while(true) {
+					synchronized (lock) {					
+					try {
+						Thread.sleep(8000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}					
+						
+						for(int i=0;i<listaProcessos.size();i++) {
+							
+							if(listaProcessos.get(i).isCoordenador()) {							
+								System.out.println("Coordenador finalizado");
+								listaProcessos.get(i).setAtivo(false);
+								listaProcessos.remove(i);
+							}
+						}								
+					}			
+								
+																				
+				}
+				
 			}
-			
-		}
-			
-		if(i==0) {
-			
-			return false;
-		}else {
-			
-			return true;
-		}
+		}).start();
 		
 	}
 	
-	public void finalizarProcesso() {
 		
-		Random r = null;
-		int i = r.nextInt(listaProcessos.size());
-		
-		
-		listaProcessos.get(i).interrupt();
-		
-	}
 
 }
